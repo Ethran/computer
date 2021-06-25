@@ -35,6 +35,7 @@ template <typename T>
 
 class Program
 {
+public:
   template <unsigned int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &mem)
@@ -47,8 +48,6 @@ class Program
     ;
     ;
   }
-
-public:
 };
 
 template <int Addr>
@@ -65,6 +64,7 @@ public:
 template <typename T>
 class Mem
 {
+public:
   constexpr Mem()
   {}
   static unsigned int
