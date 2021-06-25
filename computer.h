@@ -2,7 +2,12 @@
 
 template <typename T>
 class Program;
-
+template <int Addr>
+class Num;
+template <typename T>
+class Mem;
+template <typename First, typename Second>
+class Mov;
 
 template <unsigned int memorySize, typename wordType>
 class Computer
@@ -11,11 +16,11 @@ public:
   constexpr Computer() = default;
 
   template <typename T>
-  static constexpr std::array<wordType, memorySize> &
+  static constexpr const std::array<wordType, memorySize> &
   boot()
   {
-
-    T::execute<memorySize, wordType>(mem);
+    T::execute(mem);
+  //  Program<Mov<Mem<Num<0>>, Num<42>>>::execute(mem);
     return mem;
   }
 
