@@ -19,8 +19,10 @@ public:
   static constexpr const std::array<wordType, memorySize> &
   boot()
   {
-    T::execute(mem);
-  //  Program<Mov<Mem<Num<0>>, Num<42>>>::execute(mem);
+    Program<Mov<Mem<Num<0>>, Num<42>>> czy_dziala;
+    Program<Mov<Mem<Num<0>>, Num<42>>>::inna_funkcja();
+    // T::execute(mem);
+    //  Program<Mov<Mem<Num<0>>, Num<42>>>::execute(mem);
     return mem;
   }
 
@@ -37,6 +39,14 @@ class Program
   static constexpr void
   execute(std::array<wordType, memorySize> &mem)
   {}
+
+  static void
+  inna_funkcja()
+  {
+    ;
+    ;
+    ;
+  }
 
 public:
 };
