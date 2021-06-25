@@ -39,9 +39,13 @@ include_directories(
 
 
 # Compiler options
+add_definitions(-Wall)
+add_definitions(-Wextra)
+add_definitions(-std=c++17)
+add_definitions(-O2)
+add_definitions(-lstdc++)
 add_definitions(-g)
 add_definitions(-O0)
-add_definitions(-Wall)
 
 # Linker options
 
@@ -62,7 +66,7 @@ set ( CXX_SRCS
 
 set_source_files_properties(
     ${CXX_SRCS} PROPERTIES COMPILE_FLAGS 
-    " -g -O0 -Wall")
+    " -Wall -Wextra -std=c++17 -O2 -lstdc++")
 
 if(WIN32)
     enable_language(RC)
