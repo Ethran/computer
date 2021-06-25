@@ -1,27 +1,40 @@
 #include <bits/stdc++.h>
 
+template <typename T>
+class Program;
+
 
 template <unsigned int memorySize, typename wordType>
 class Computer
 {
 public:
   constexpr Computer() = default;
+
   template <typename T>
-  constexpr void
-  boot(T &arg)
+  static constexpr std::array<wordType, memorySize> &
+  boot()
   {
-    for (auto &it : mem)
-      {
-        it = 0;
-      }
+
+    T::execute<memorySize, wordType>(mem);
+    return mem;
   }
 
 private:
-  std::array<wordType, memorySize> mem;
+  static std::array<wordType, memorySize> mem;
 };
+
+
 template <typename T>
+
 class Program
-{};
+{
+  template <unsigned int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &mem)
+  {}
+
+public:
+};
 
 template <int Addr>
 class Num
@@ -29,16 +42,31 @@ class Num
 public:
   constexpr Num()
   {
-    addrPrivate = Addr;
+    addrInClass = Addr;
   }
-
-private:
-  static int addrPrivate;
+  static int addrInClass;
 };
 
-template <Num Addr>
+template <typename T>
 class Mem
 {
   constexpr Mem()
   {}
+  static unsigned int
+  getPos()
+  {
+    static_assert(T::addrInClass >= 0);
+    return T::addrInClass;
+  }
+};
+
+template <typename First, typename Second>
+class Mov
+{
+public:
+  static std::pair<int, int>
+  execute()
+  {
+    return make_pair(First::getPos(), Second::getPos());
+  }
 };

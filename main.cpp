@@ -14,7 +14,9 @@ compare(std::array<T, N> const &arg1, std::array<T, N> const &arg2)
   return true;
 }
 
-using test1 = Mem<Num<0>>;
+// using test1       = Mem<Num<0>>;
+using tmpasm_move = Program<Mov<Mem<Num<0>>, Num<42>>>;
+
 
 // using tmpasm_move = Program<Mem<Num<0>>>;
 
@@ -24,7 +26,7 @@ main()
 {
   std::cout << "Hello World" << std::endl;
 
-  // static_assert(compare(Computer<1, int8_t>::boot<tmpasm_move>(),
-  ///              std::array<int8_t, 1>({42})),
-  ///     "Failed [tmpasp_move].");
+  static_assert(compare(Computer<1, int8_t>::boot<tmpasm_move>(),
+                        std::array<int8_t, 1>({42})),
+                "Failed [tmpasp_move].");
 }
