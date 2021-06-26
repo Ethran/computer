@@ -9,46 +9,7 @@ class Mem;
 template <typename First, typename Second>
 class Mov;
 
-template <unsigned int memorySize, typename wordType>
-class Computer
-{
-public:
-  constexpr Computer() = default;
 
-  template <typename T>
-  static constexpr const std::array<wordType, memorySize> &
-  boot()
-  {
-    Program<Mov<Mem<Num<0>>, Num<42>>> czy_dziala;
-    Program<Mov<Mem<Num<0>>, Num<42>>>::inna_funkcja();
-    // T::execute(mem);
-    //  Program<Mov<Mem<Num<0>>, Num<42>>>::execute(mem);
-    return mem;
-  }
-
-private:
-  static std::array<wordType, memorySize> mem;
-};
-
-
-template <typename T>
-
-class Program
-{
-public:
-  template <unsigned int memorySize, typename wordType>
-  static constexpr void
-  execute(std::array<wordType, memorySize> &mem)
-  {}
-
-  static void
-  inna_funkcja()
-  {
-    ;
-    ;
-    ;
-  }
-};
 
 template <int Addr>
 class Num
@@ -84,4 +45,46 @@ public:
   {
     return make_pair(First::getPos(), Second::getPos());
   }
+};
+
+
+
+template <typename T>
+
+class Program
+{
+public:
+  template <unsigned int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &mem)
+  {}
+
+  static void
+  inna_funkcja()
+  {
+    ;
+    ;
+    ;
+  }
+};
+
+template <unsigned int memorySize, typename wordType>
+class Computer
+{
+public:
+  constexpr Computer() = default;
+
+  template <typename T>
+  static constexpr const std::array<wordType, memorySize> &
+  boot()
+  {
+    Program<Mov<Mem<Num<0>>, Num<42>>>::execute<memorySize, wordType>(mem);
+    T::execute(mem);
+    T::execute<memorySize, wordType>(mem);
+
+    return mem;
+  }
+
+private:
+  static std::array<wordType, memorySize> mem;
 };
