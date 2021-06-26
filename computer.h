@@ -56,7 +56,7 @@ class Program
 public:
   template <unsigned int memorySize, typename wordType>
   static constexpr void
-  execute(std::array<wordType, memorySize> &mem)
+  execute( std::array<wordType, memorySize> &mem)
   {}
 
   static void
@@ -78,10 +78,10 @@ public:
   static constexpr const std::array<wordType, memorySize> &
   boot()
   {
-    Program<Mov<Mem<Num<0>>, Num<42>>>::execute<memorySize, wordType>(mem);
-    T::execute(mem);
-    T::execute<memorySize, wordType>(mem);
-
+    static_assert(std::is_same_v<T, Program<Mov<Mem<Num<0>>, Num<42>>>>);
+	Program<Mov<Mem<Num<0>>, Num<42>>>::execute<memorySize, wordType>(mem);
+   // T::execute<memorySize, wordType>(mem);
+ //   T::execute(mem);
     return mem;
   }
 
