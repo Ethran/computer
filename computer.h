@@ -1,5 +1,8 @@
 #include <bits/stdc++.h>
 
+#define COUNT_OF(x) \
+  ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
+
 template <typename T>
 class Program;
 template <int Addr>
@@ -8,83 +11,192 @@ template <typename T>
 class Mem;
 template <typename First, typename Second>
 class Mov;
+namespace
+{
+  constexpr unsigned int  maxSize   = 10;
+  constexpr long long int sizeOfMem = 0;
 
+  using typeOfIterator = long int;
+  // https://stackoverflow.com/questions/16505417/input-c-style-string-and-get-the-length
+  constexpr unsigned int
+  strlen(const char *test)
+  {
+    const char *p   = test;
+    unsigned    len = 0;
+    while (*p != '\0')
+      {
+        len++;
+        p++;
+      }
+    return len;
+  }
+
+
+  constexpr bool
+  check(const char *varName)
+  {
+    auto len = strlen(varName);
+    if (len == 0)
+      return false;
+    if (len > 6)
+      return false;
+    for (unsigned int i = 0; i < len; ++i)
+      {
+        char it = varName[i];
+        if (it >= 'a' && it <= 'z')
+          continue;
+        if (it >= 'A' && it <= 'Z')
+          continue;
+        if (it >= '0' && it <= '9')
+          continue;
+        return false;
+      }
+    return true;
+  }
+} // namespace
+
+constexpr const char *
+Id(const char *varName)
+{
+  return varName;
+}
 
 
 template <int Addr>
 class Num
 {
 public:
-  constexpr Num()
+  constexpr static const typeOfIterator addrInClass = Addr;
+
+
+
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr const typeOfIterator
+  getValue([[maybe_unused]] std::array<wordType, memorySize> &mem,
+           [[maybe_unused]] std::array<char *, memorySize> &  variables,
+           [[maybe_unused]] int &                             iterator)
   {
-    addrInClass = Addr;
+    return addrInClass;
   }
-  static int addrInClass;
+  template <unsigned long int memorySize>
+  static constexpr typeOfIterator
+  findIndex([[maybe_unused]] std::array<char *, memorySize> &variables,
+            [[maybe_unused]] int &                           iterator)
+  {
+    return addrInClass;
+  }
 };
 
-template <typename T>
+
+
+template <const char *varName>
+class Lea
+{
+public:
+  template <unsigned long int memorySize>
+  static constexpr typeOfIterator
+  findIndex(std::array<char *, memorySize> &variables, int &iterator)
+  {
+    bool           ifExist = false;
+    typeOfIterator result  = -1;
+    if (check(varName))
+      {
+        for (const auto &it : variables)
+          {
+            if (strcmp(it, varName))
+              {
+                result  = variables.begin() - &it;
+                ifExist = true;
+                break;
+              }
+          }
+        if (!ifExist)
+          {
+            variables[iterator] = varName;
+            result              = iterator;
+            ++iterator;
+          }
+      }
+    return result;
+  }
+};
+
+
+template <typename NumOrLea>
 class Mem
 {
 public:
-  constexpr Mem()
-  {}
-  static unsigned int
-  getPos()
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr wordType &
+  getValue(std::array<wordType, memorySize> &mem,
+           std::array<char *, memorySize> &  variables,
+           int &                             iterator)
   {
-    static_assert(T::addrInClass >= 0);
-    return T::addrInClass;
+    auto result = NumOrLea::template findIndex<memorySize>(variables, iterator);
+    // static_assert(result >= 0);
+    // static_assert(result < memorySize);
+    return mem[result];
   }
 };
+
+
 
 template <typename First, typename Second>
 class Mov
 {
 public:
-  static std::pair<int, int>
-  execute()
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &mem,
+          std::array<char *, memorySize> &  variables,
+          int &                             iterator)
   {
-    return make_pair(First::getPos(), Second::getPos());
+    First::template getValue<memorySize, wordType>(mem, variables, iterator) =
+      Second::template getValue<memorySize, wordType>(mem, variables, iterator);
   }
 };
 
 
 
-template <typename T>
+template <typename Instruction>
 
 class Program
 {
 public:
-  template <unsigned int memorySize, typename wordType>
+  template <unsigned long int memorySize, typename wordType>
   static constexpr void
-  execute( std::array<wordType, memorySize> &mem)
-  {}
-
-  static void
-  inna_funkcja()
+  run(std::array<wordType, memorySize> &mem,
+      std::array<char *, memorySize> &  variables,
+      int &                             iterator)
   {
-    ;
-    ;
-    ;
+    Instruction::template execute<memorySize, wordType>(mem,
+                                                        variables,
+                                                        iterator);
   }
 };
 
-template <unsigned int memorySize, typename wordType>
+
+
+template <unsigned long int memorySize, typename wordType>
 class Computer
 {
 public:
   constexpr Computer() = default;
 
-  template <typename T>
-  static constexpr const std::array<wordType, memorySize> &
+  template <typename Program>
+  static constexpr const std::array<wordType, memorySize>
   boot()
   {
-    static_assert(std::is_same_v<T, Program<Mov<Mem<Num<0>>, Num<42>>>>);
-	Program<Mov<Mem<Num<0>>, Num<42>>>::execute<memorySize, wordType>(mem);
-   // T::execute<memorySize, wordType>(mem);
- //   T::execute(mem);
+    std::array<wordType, memorySize> mem       = {};
+    std::array<char *, memorySize>   variables = {};
+    int                              iterator  = 0;
+    for (auto &it : mem)
+      {
+        it = 0;
+      }
+    Program::template run<memorySize, wordType>(mem, variables, iterator);
     return mem;
   }
 
 private:
-  static std::array<wordType, memorySize> mem;
 };
