@@ -19,7 +19,7 @@ namespace
   using typeOfIterator = long int;
   // https://stackoverflow.com/questions/16505417/input-c-style-string-and-get-the-length
   constexpr unsigned int
-  strlen(const char *test)
+  strLen(const char *const test)
   {
     const char *p   = test;
     unsigned    len = 0;
@@ -30,12 +30,11 @@ namespace
       }
     return len;
   }
-
-
   constexpr bool
   check(const char *varName)
   {
-    auto len = strlen(varName);
+    auto len = strLen(varName);
+
     if (len == 0)
       return false;
     if (len > 6)
@@ -55,10 +54,21 @@ namespace
   }
 } // namespace
 
-constexpr const char *
+constexpr unsigned long long
 Id(const char *varName)
 {
-  return varName;
+  auto len = strLen(varName);
+
+  unsigned long long result = 0;
+  assert(::check(varName));
+
+  for (unsigned int i = 0; i < len; ++i)
+    {
+      result |= varName[i];
+      result <<= 8;
+    }
+
+  return result;
 }
 
 
@@ -71,17 +81,19 @@ public:
 
 
   template <unsigned long int memorySize, typename wordType>
-  static constexpr const typeOfIterator
-  getValue([[maybe_unused]] std::array<wordType, memorySize> &mem,
-           [[maybe_unused]] std::array<char *, memorySize> &  variables,
-           [[maybe_unused]] int &                             iterator)
+  static constexpr typeOfIterator
+  getValue(
+    [[maybe_unused]] std::array<wordType, memorySize> &          mem,
+    [[maybe_unused]] std::array<unsigned long long, memorySize> &variables,
+    [[maybe_unused]] typeOfIterator &                            iterator)
   {
     return addrInClass;
   }
   template <unsigned long int memorySize>
-  static constexpr typeOfIterator
-  findIndex([[maybe_unused]] std::array<char *, memorySize> &variables,
-            [[maybe_unused]] int &                           iterator)
+  constexpr static typeOfIterator
+  findIndex(
+    [[maybe_unused]] std::array<unsigned long long, memorySize> &variables,
+    [[maybe_unused]] typeOfIterator &                            iterator)
   {
     return addrInClass;
   }
@@ -89,33 +101,32 @@ public:
 
 
 
-template <const char *varName>
+template <unsigned long long varNumber>
 class Lea
 {
 public:
   template <unsigned long int memorySize>
-  static constexpr typeOfIterator
-  findIndex(std::array<char *, memorySize> &variables, int &iterator)
+  constexpr static typeOfIterator
+  findIndex(std::array<unsigned long long, memorySize> &variables,
+            typeOfIterator &                            iterator)
   {
     bool           ifExist = false;
     typeOfIterator result  = -1;
-    if (check(varName))
+
+    for (unsigned int i = 0; i < variables.size(); ++i)
       {
-        for (const auto &it : variables)
+        if (variables[i] == varNumber)
           {
-            if (strcmp(it, varName))
-              {
-                result  = variables.begin() - &it;
-                ifExist = true;
-                break;
-              }
+            result  = i;
+            ifExist = true;
+            break;
           }
-        if (!ifExist)
-          {
-            variables[iterator] = varName;
-            result              = iterator;
-            ++iterator;
-          }
+      }
+    if (!ifExist)
+      {
+        variables[iterator] = varNumber;
+        result              = iterator;
+        ++iterator;
       }
     return result;
   }
@@ -128,13 +139,15 @@ class Mem
 public:
   template <unsigned long int memorySize, typename wordType>
   static constexpr wordType &
-  getValue(std::array<wordType, memorySize> &mem,
-           std::array<char *, memorySize> &  variables,
-           int &                             iterator)
+  getValue(std::array<wordType, memorySize> &          mem,
+           std::array<unsigned long long, memorySize> &variables,
+           typeOfIterator &                            iterator)
   {
-    auto result = NumOrLea::template findIndex<memorySize>(variables, iterator);
-    // static_assert(result >= 0);
-    // static_assert(result < memorySize);
+    const constexpr auto test = memorySize;
+
+    const auto result = NumOrLea::template findIndex<test>(variables, iterator);
+    assert(result >= 0);
+    assert(result < static_cast<typeOfIterator>(memorySize));
     return mem[result];
   }
 };
@@ -147,9 +160,9 @@ class Mov
 public:
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
-  execute(std::array<wordType, memorySize> &mem,
-          std::array<char *, memorySize> &  variables,
-          int &                             iterator)
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
   {
     First::template getValue<memorySize, wordType>(mem, variables, iterator) =
       Second::template getValue<memorySize, wordType>(mem, variables, iterator);
@@ -165,9 +178,9 @@ class Program
 public:
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
-  run(std::array<wordType, memorySize> &mem,
-      std::array<char *, memorySize> &  variables,
-      int &                             iterator)
+  run(std::array<wordType, memorySize> &          mem,
+      std::array<unsigned long long, memorySize> &variables,
+      typeOfIterator &                            iterator)
   {
     Instruction::template execute<memorySize, wordType>(mem,
                                                         variables,
@@ -187,9 +200,9 @@ public:
   static constexpr const std::array<wordType, memorySize>
   boot()
   {
-    std::array<wordType, memorySize> mem       = {};
-    std::array<char *, memorySize>   variables = {};
-    int                              iterator  = 0;
+    std::array<wordType, memorySize>           mem       = {};
+    std::array<unsigned long long, memorySize> variables = {};
+    typeOfIterator                             iterator  = 0;
     for (auto &it : mem)
       {
         it = 0;
