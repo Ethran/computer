@@ -3,7 +3,7 @@
 #define COUNT_OF(x) \
   ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
 
-template <typename T>
+template <class Instruction, class... Rest>
 class Program;
 template <int Addr>
 class Num;
@@ -82,18 +82,18 @@ public:
 
   template <unsigned long int memorySize, typename wordType>
   static constexpr typeOfIterator
-  getValue(
-    [[maybe_unused]] std::array<wordType, memorySize> &          mem,
-    [[maybe_unused]] std::array<unsigned long long, memorySize> &variables,
-    [[maybe_unused]] typeOfIterator &                            iterator)
+  getValue([[maybe_unused]] const std::array<wordType, memorySize> &mem,
+           [[maybe_unused]] const std::array<unsigned long long, memorySize>
+             &                                    variables,
+           [[maybe_unused]] const typeOfIterator &iterator)
   {
     return addrInClass;
   }
   template <unsigned long int memorySize>
   constexpr static typeOfIterator
-  findIndex(
-    [[maybe_unused]] std::array<unsigned long long, memorySize> &variables,
-    [[maybe_unused]] typeOfIterator &                            iterator)
+  findIndex([[maybe_unused]] const std::array<unsigned long long, memorySize>
+              &                                    variables,
+            [[maybe_unused]] const typeOfIterator &iterator)
   {
     return addrInClass;
   }
@@ -112,8 +112,8 @@ public:
   {
     bool           ifExist = false;
     typeOfIterator result  = -1;
-
-    for (unsigned int i = 0; i < variables.size(); ++i)
+    assert(varNumber != 0);
+    for (unsigned int i = 0; i < memorySize; ++i)
       {
         if (variables[i] == varNumber)
           {
@@ -148,6 +148,7 @@ public:
     const auto result = NumOrLea::template findIndex<test>(variables, iterator);
     assert(result >= 0);
     assert(result < static_cast<typeOfIterator>(memorySize));
+
     return mem[result];
   }
 };
@@ -169,9 +170,45 @@ public:
   }
 };
 
+template <unsigned long long varNumber, typename Second>
+class D
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto &result =
+      Mem<Lea<varNumber>>::template getValue<memorySize, wordType>(mem,
+                                                                   variables,
+                                                                   iterator);
+    const auto parSec =
+      Second::template getValue<memorySize, wordType>(mem, variables, iterator);
+    result = parSec;
+  }
+};
 
 
 template <typename Instruction>
+
+class Program<Instruction>
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  run(std::array<wordType, memorySize> &          mem,
+      std::array<unsigned long long, memorySize> &variables,
+      typeOfIterator &                            iterator)
+  {
+    Instruction::template execute<memorySize, wordType>(mem,
+                                                        variables,
+                                                        iterator);
+  }
+};
+
+template <typename Instruction, typename... Rest>
 
 class Program
 {
@@ -185,6 +222,9 @@ public:
     Instruction::template execute<memorySize, wordType>(mem,
                                                         variables,
                                                         iterator);
+    return Program<Rest...>::template run<memorySize, wordType>(mem,
+                                                                variables,
+                                                                iterator);
   }
 };
 

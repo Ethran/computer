@@ -16,44 +16,57 @@ compare(std::array<T, N> const &arg1, std::array<T, N> const &arg2)
 }
 
 
-// using test1       = Mem<Num<0>>;
-using tmpasm_move = Program<Mov<Mem<Num<0>>, Num<42>>>;
-// using tmpasm_move = Program<Mov<Num<42>,Mem<Num<0>>>>;
-// using test2 = Program<Mov<
-//
-//  Mem<Lea<Id("a")>>,
-//
-//  Num<42>
-//
-//  >>;
-//
-//
+
+using part0  = Mov<Mem<Num<0>>, Num<42>>;
+using part0a = Mov<Mem<Num<2>>, Num<42>>;
 
 
-using test3 = Mem<Lea<Id("a")>>;
+using tmpasm_move = Program<part0>;
 
 
-// using tmpasm_jump = Program<
-//        Inc<Mem<Num<0>>>,
-//        Jmp<Id("stop")>,
-//        Inc<Mem<Num<0>>>,
-//        Label<Id("stop")>>;
-// using tmpasm_move = Program<Mem<Num<0>>>;
+
+using part1 = Mov<Mem<Lea<Id("09aZ")>>, Num<-1>>;
+
+using test1 = Program<part1>;
 
 
+
+using part2  = D<Id("abd"), Num<-21>>;
+using part2b = D<Id("aabd"), Num<-22>>;
+using part2c = D<Id("aabad"), Num<-23>>;
+
+
+
+using test2 = Program<part2>;
+
+
+
+using test3 = Program<part2, part0a, part1>;
+
+using test4f = Program<part2, part0a, part1, part0, part2b, part2c>;
 
 int
 main()
 {
-  std::cout << "Hello World" << std::endl;
-
-  auto a = Id("abc");
-
-  std::bitset<8> x(a);
-  std::cout << x << '\n';
-
-  Computer<1, int8_t>::boot<tmpasm_move>();
   static_assert(compare(Computer<1, int8_t>::boot<tmpasm_move>(),
                         std::array<int8_t, 1>({42})),
                 "Failed [tmpasp_move].");
+  static_assert(compare(Computer<1, int8_t>::boot<test1>(),
+                        std::array<int8_t, 1>({-1})),
+                "Failed [test1].");
+  static_assert(compare(Computer<1, int8_t>::boot<test2>(),
+                        std::array<int8_t, 1>({-21})),
+                "Failed [test2].");
+
+
+  static_assert(compare(Computer<3, int8_t>::boot<test3>(),
+                        std::array<int8_t, 3>({-21, -1, 42})),
+                "Failed [test3].");
+
+  /*
+    auto tmp = Computer<3, int>::boot<test4f>();
+    for (const auto &it : tmp)
+      {
+        std::cout << it << "\n";
+      }*/
 }
