@@ -5,7 +5,7 @@
 
 template <class Instruction, class... Rest>
 class Program;
-template <int Addr>
+template <auto Addr>
 class Num;
 template <typename T>
 class Mem;
@@ -52,6 +52,26 @@ namespace
       }
     return true;
   }
+
+
+  template <typename T>
+  constexpr void
+  setFlagsZF(T arg)
+  {
+    ;
+    ;
+    ;
+    ;
+  }
+  template <typename T>
+  constexpr void
+  setFlagsSF(T arg)
+  {
+    ;
+    ;
+    ;
+    ;
+  }
 } // namespace
 
 constexpr unsigned long long
@@ -64,7 +84,12 @@ Id(const char *varName)
 
   for (unsigned int i = 0; i < len; ++i)
     {
-      result |= varName[i];
+      char it = varName[i];
+      if (it >= 'a' && it <= 'z')
+        {
+          it -= 32;
+        }
+      result |= it;
       result <<= 8;
     }
 
@@ -72,7 +97,7 @@ Id(const char *varName)
 }
 
 
-template <int Addr>
+template <auto Addr>
 class Num
 {
 public:
@@ -82,16 +107,8 @@ public:
 
   template <unsigned long int memorySize, typename wordType>
   static constexpr typeOfIterator
-  getValue([[maybe_unused]] const std::array<wordType, memorySize> &mem,
-           [[maybe_unused]] const std::array<unsigned long long, memorySize>
-             &                                    variables,
-           [[maybe_unused]] const typeOfIterator &iterator)
-  {
-    return addrInClass;
-  }
-  template <unsigned long int memorySize>
-  constexpr static typeOfIterator
-  findIndex([[maybe_unused]] const std::array<unsigned long long, memorySize>
+  getRValue([[maybe_unused]] const std::array<wordType, memorySize> &mem,
+            [[maybe_unused]] const std::array<unsigned long long, memorySize>
               &                                    variables,
             [[maybe_unused]] const typeOfIterator &iterator)
   {
@@ -105,10 +122,11 @@ template <unsigned long long varNumber>
 class Lea
 {
 public:
-  template <unsigned long int memorySize>
+  template <unsigned long int memorySize, typename wordType>
   constexpr static typeOfIterator
-  findIndex(std::array<unsigned long long, memorySize> &variables,
-            typeOfIterator &                            iterator)
+  getRValue([[maybe_unused]] const std::array<wordType, memorySize> &mem,
+            std::array<unsigned long long, memorySize> &             variables,
+            typeOfIterator &                                         iterator)
   {
     bool           ifExist = false;
     typeOfIterator result  = -1;
@@ -139,13 +157,30 @@ class Mem
 public:
   template <unsigned long int memorySize, typename wordType>
   static constexpr wordType &
-  getValue(std::array<wordType, memorySize> &          mem,
-           std::array<unsigned long long, memorySize> &variables,
-           typeOfIterator &                            iterator)
+  getLValue(std::array<wordType, memorySize> &          mem,
+            std::array<unsigned long long, memorySize> &variables,
+            typeOfIterator &                            iterator)
   {
-    const constexpr auto test = memorySize;
+    const auto result =
+      NumOrLea::template getRValue<memorySize, wordType>(mem,
+                                                         variables,
+                                                         iterator);
+    assert(result >= 0);
+    assert(result < static_cast<typeOfIterator>(memorySize));
 
-    const auto result = NumOrLea::template findIndex<test>(variables, iterator);
+    return mem[result];
+  }
+
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr wordType
+  getRValue(std::array<wordType, memorySize> &          mem,
+            std::array<unsigned long long, memorySize> &variables,
+            typeOfIterator &                            iterator)
+  {
+    const auto result =
+      NumOrLea::template getRValue<memorySize, wordType>(mem,
+                                                         variables,
+                                                         iterator);
     assert(result >= 0);
     assert(result < static_cast<typeOfIterator>(memorySize));
 
@@ -165,8 +200,10 @@ public:
           std::array<unsigned long long, memorySize> &variables,
           typeOfIterator &                            iterator)
   {
-    First::template getValue<memorySize, wordType>(mem, variables, iterator) =
-      Second::template getValue<memorySize, wordType>(mem, variables, iterator);
+    First::template getLValue<memorySize, wordType>(mem, variables, iterator) =
+      Second::template getRValue<memorySize, wordType>(mem,
+                                                       variables,
+                                                       iterator);
   }
 };
 
@@ -181,14 +218,222 @@ public:
           typeOfIterator &                            iterator)
   {
     auto &result =
-      Mem<Lea<varNumber>>::template getValue<memorySize, wordType>(mem,
-                                                                   variables,
-                                                                   iterator);
+      Mem<Lea<varNumber>>::template getLValue<memorySize, wordType>(mem,
+                                                                    variables,
+                                                                    iterator);
     const auto parSec =
-      Second::template getValue<memorySize, wordType>(mem, variables, iterator);
+      Second::template getRValue<memorySize, wordType>(mem,
+                                                       variables,
+                                                       iterator);
     result = parSec;
   }
 };
+
+
+
+template <typename FirstLValue, typename SecondPValue>
+class Add
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto &result =
+      FirstLValue::template getLValue<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+    const auto parSec =
+      SecondPValue::template getRValue<memorySize, wordType>(mem,
+                                                             variables,
+                                                             iterator);
+    result += parSec;
+
+    ::template setFlagsZF<wordType>(result);
+    ::template setFlagsSF<wordType>(result);
+  }
+};
+
+
+
+template <typename FirstLValue>
+class Inc
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto &result =
+      FirstLValue::template getLValue<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+    ++result;
+
+
+    ::template setFlagsZF<wordType>(result);
+    ::template setFlagsSF<wordType>(result);
+  }
+};
+
+
+template <typename FirstLValue, typename SecondPValue>
+class Sub
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto &result =
+      FirstLValue::template getLValue<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+    const auto parSec =
+      SecondPValue::template getRValue<memorySize, wordType>(mem,
+                                                             variables,
+                                                             iterator);
+    result -= parSec;
+
+
+    ::template setFlagsZF<wordType>(result);
+    ::template setFlagsSF<wordType>(result);
+  }
+};
+
+
+
+template <typename FirstLValue>
+class Dec
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto &result =
+      FirstLValue::template getLValue<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+
+    --result;
+
+    ::template setFlagsZF<wordType>(result);
+    ::template setFlagsSF<wordType>(result);
+  }
+};
+
+
+template <typename FirstLValue, typename SecondPValue>
+class And
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto &result =
+      FirstLValue::template getLValue<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+
+    const auto parSec =
+      SecondPValue::template getRValue<memorySize, wordType>(mem,
+                                                             variables,
+                                                             iterator);
+
+    result &= parSec;
+
+    ::template setFlagsZF<wordType>(result);
+  }
+};
+
+
+template <typename FirstLValue, typename SecondPValue>
+class Or
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto &result =
+      FirstLValue::template getLValue<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+
+    const auto parSec =
+      SecondPValue::template getRValue<memorySize, wordType>(mem,
+                                                             variables,
+                                                             iterator);
+
+    result |= parSec;
+
+    ::template setFlagsZF<wordType>(result);
+  }
+};
+template <typename FirstLValue>
+class Not
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto &result =
+      FirstLValue::template getLValue<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+
+
+
+    result = ~result;
+
+    ::template setFlagsZF<wordType>(result);
+  }
+};
+
+
+template <typename FirstPValue, typename SecondPValue>
+class Cmp
+{
+public:
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
+  execute(std::array<wordType, memorySize> &          mem,
+          std::array<unsigned long long, memorySize> &variables,
+          typeOfIterator &                            iterator)
+  {
+    auto result =
+      FirstPValue::template getPValue<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+    const auto parSec =
+      SecondPValue::template getRValue<memorySize, wordType>(mem,
+                                                             variables,
+                                                             iterator);
+    result -= parSec;
+
+
+    ::template setFlagsZF<wordType>(result);
+    ::template setFlagsSF<wordType>(result);
+  }
+};
+
 
 
 template <typename Instruction>
