@@ -50,7 +50,11 @@ namespace
       }
     return true;
   }
-
+  enum
+  {
+    ZF = 0,
+    SF = 1
+  };
 
   template <typename T>
   constexpr void
@@ -206,7 +210,7 @@ public:
 };
 
 template <unsigned long long varNumber, typename Second>
-class D
+class D final
 {
 public:
   template <unsigned long int memorySize, typename wordType>
@@ -441,13 +445,33 @@ class Program<Instruction>
 public:
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
+  initialize(std::array<wordType, memorySize> &          mem,
+             std::array<unsigned long long, memorySize> &variables,
+             typeOfIterator &                            iterator)
+  {
+    if (std::is_final<Instruction>::value == true)
+      {        
+
+        Instruction::template execute<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+      }
+  }
+
+
+
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
   run(std::array<wordType, memorySize> &          mem,
       std::array<unsigned long long, memorySize> &variables,
       typeOfIterator &                            iterator)
   {
-    Instruction::template execute<memorySize, wordType>(mem,
-                                                        variables,
-                                                        iterator);
+    if (std::is_final<Instruction>::value == false)
+      {
+        Instruction::template execute<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+      }
   }
 };
 
@@ -458,13 +482,34 @@ class Program
 public:
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
+  initialize(std::array<wordType, memorySize> &          mem,
+             std::array<unsigned long long, memorySize> &variables,
+             typeOfIterator &                            iterator)
+  {
+    if (std::is_final<Instruction>::value == true)
+      {
+        Instruction::template execute<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+      }
+
+
+    return Program<Rest...>::template initialize<memorySize, wordType>(mem,
+                                                                variables,
+                                                                iterator);
+  }
+  template <unsigned long int memorySize, typename wordType>
+  static constexpr void
   run(std::array<wordType, memorySize> &          mem,
       std::array<unsigned long long, memorySize> &variables,
       typeOfIterator &                            iterator)
   {
-    Instruction::template execute<memorySize, wordType>(mem,
-                                                        variables,
-                                                        iterator);
+    if (std::is_final<Instruction>::value == false)
+      {
+        Instruction::template execute<memorySize, wordType>(mem,
+                                                            variables,
+                                                            iterator);
+      }
     return Program<Rest...>::template run<memorySize, wordType>(mem,
                                                                 variables,
                                                                 iterator);
@@ -483,13 +528,17 @@ public:
   static constexpr const std::array<wordType, memorySize>
   boot()
   {
-    std::array<wordType, memorySize>           mem       = {};
+    std::array<wordType, memorySize>           mem       = {0};
     std::array<unsigned long long, memorySize> variables = {};
     typeOfIterator                             iterator  = 0;
     for (auto &it : mem)
       {
         it = 0;
       }
+    Program::template initialize<memorySize, wordType>(mem,
+                                                       variables,
+                                                       iterator);
+
     Program::template run<memorySize, wordType>(mem, variables, iterator);
     return mem;
   }

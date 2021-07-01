@@ -196,7 +196,7 @@ t400()
 }
 void
 t205()
-{ /*
+{ 
    struct test
    {
      using tmpasm_move_lea_1var = Program<D<Id("a"), Num<42>>,
@@ -232,7 +232,7 @@ t205()
 
      static_assert(
        compare(Computer<8, int>::boot<test::tmpasm_move_lea_3vars_write>(),
-               std::array<int, 8>({15, 14, 13, 0, 0, 7, 8, 9})));*/
+               std::array<int, 8>({15, 14, 13, 0, 0, 7, 8, 9})));
 }
 void
 t204()
