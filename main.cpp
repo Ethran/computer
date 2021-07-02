@@ -71,7 +71,7 @@ void
 t500();
 int
 main()
-{
+{  constexpr auto error = Computer<11, int>::boot<Program<D<Id("a"), Mem<Num<0>>>>>();
   t202();
   t203();
   t204();

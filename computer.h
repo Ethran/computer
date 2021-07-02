@@ -143,7 +143,7 @@ class Num
 {
 public:
   constexpr static const typeOfIterator addrInClass = Addr;
-
+  constexpr static bool                 czyNum      = true;
 
 
   template <unsigned long int memorySize, typename wordType>
@@ -163,6 +163,8 @@ template <unsigned long long varNumber>
 class Lea
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   constexpr static typeOfIterator
   getRValue([[maybe_unused]] const std::array<wordType, memorySize> &mem,
@@ -196,6 +198,8 @@ template <typename NumOrLea>
 class Mem
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr wordType &
   getLValue(std::array<wordType, memorySize> &          mem,
@@ -235,6 +239,8 @@ template <typename First, typename Second>
 class Mov
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -252,6 +258,8 @@ template <unsigned long long varNumber, typename Second>
 class D final
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -262,6 +270,7 @@ public:
       Mem<Lea<varNumber>>::template getLValue<memorySize, wordType>(mem,
                                                                     variables,
                                                                     iterator);
+    assert(Second::czyNum);
     const auto parSec =
       Second::template getRValue<memorySize, wordType>(mem,
                                                        variables,
@@ -276,6 +285,8 @@ template <typename FirstLValue, typename SecondPValue>
 class Add
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -303,6 +314,8 @@ template <typename FirstLValue>
 class Inc
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -326,6 +339,8 @@ template <typename FirstLValue, typename SecondPValue>
 class Sub
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -354,6 +369,8 @@ template <typename FirstLValue>
 class Dec
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -377,6 +394,8 @@ template <typename FirstLValue, typename SecondPValue>
 class And
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -404,6 +423,8 @@ template <typename FirstLValue, typename SecondPValue>
 class Or
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -429,6 +450,8 @@ template <typename FirstLValue>
 class Not
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -453,6 +476,8 @@ template <typename FirstPValue, typename SecondPValue>
 class Cmp
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   execute(std::array<wordType, memorySize> &          mem,
@@ -481,6 +506,8 @@ template <typename Instruction>
 class Program<Instruction>
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   initialize(std::array<wordType, memorySize> &          mem,
@@ -521,6 +548,8 @@ template <typename Instruction, typename... Rest>
 class Program
 {
 public:
+  constexpr static bool czyNum = false;
+
   template <unsigned long int memorySize, typename wordType>
   static constexpr void
   initialize(std::array<wordType, memorySize> &          mem,
