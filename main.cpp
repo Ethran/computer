@@ -88,45 +88,41 @@ main()
 }
 void
 t500()
-{ struct test {
-        using tmpasm_and = Program<
-                D<Id("a"), Num<0xff>>,
-                D<Id("b"), Num<0xff>>,
-                D<Id("c"), Num<0xf0>>,
-                And<Mem<Num<0>>, Num<1>>,
-                And<Mem<Num<1>>, Num<13>>,
-                And<Mem<Num<2>>, Num<0x0f>>>;
-        using tmpasm_or = Program<
-                D<Id("a"), Num<0>>,
-                D<Id("b"), Num<1>>,
-                D<Id("c"), Num<0xf0>>,
-                Or<Mem<Num<0>>, Num<1>>,
-                Or<Mem<Num<1>>, Num<13>>,
-                Or<Mem<Num<2>>, Num<0x0f>>>;
-        using tmpasm_not = Program<
-                D<Id("a"), Num<1>>,
-                D<Id("b"), Num<0xff>>,
-                D<Id("c"), Num<0xf0>>,
-                Not<Mem<Num<0>>>,
-                Not<Mem<Num<1>>>,
-                Not<Mem<Num<2>>>>;
-    };
+{
+  struct test
+  {
+    using tmpasm_and = Program<D<Id("a"), Num<0xff>>,
+                               D<Id("b"), Num<0xff>>,
+                               D<Id("c"), Num<0xf0>>,
+                               And<Mem<Num<0>>, Num<1>>,
+                               And<Mem<Num<1>>, Num<13>>,
+                               And<Mem<Num<2>>, Num<0x0f>>>;
+    using tmpasm_or  = Program<D<Id("a"), Num<0>>,
+                              D<Id("b"), Num<1>>,
+                              D<Id("c"), Num<0xf0>>,
+                              Or<Mem<Num<0>>, Num<1>>,
+                              Or<Mem<Num<1>>, Num<13>>,
+                              Or<Mem<Num<2>>, Num<0x0f>>>;
+    using tmpasm_not = Program<D<Id("a"), Num<1>>,
+                               D<Id("b"), Num<0xff>>,
+                               D<Id("c"), Num<0xf0>>,
+                               Not<Mem<Num<0>>>,
+                               Not<Mem<Num<1>>>,
+                               Not<Mem<Num<2>>>>;
+  };
 
-    static_assert(compare(
-            Computer<3, int>::boot<test::tmpasm_and>(),
-            std::array<int, 3>({1, 13, 0})));
+  static_assert(compare(Computer<3, int>::boot<test::tmpasm_and>(),
+                        std::array<int, 3>({1, 13, 0})));
 
-    static_assert(compare(
-            Computer<3, int>::boot<test::tmpasm_or>(),
-            std::array<int, 3>({1, 13, 0xff})));
+  static_assert(compare(Computer<3, int>::boot<test::tmpasm_or>(),
+                        std::array<int, 3>({1, 13, 0xff})));
 
-    static_assert(compare(
-            Computer<3, uint8_t >::boot<test::tmpasm_not>(),
-            std::array<uint8_t, 3>({0xff - 1, 0, 0x0f})));
+  static_assert(compare(Computer<3, uint8_t>::boot<test::tmpasm_not>(),
+                        std::array<uint8_t, 3>({0xff - 1, 0, 0x0f})));
 
-    static_assert(compare(
-            Computer<3, uint16_t >::boot<test::tmpasm_not>(),
-            std::array<uint16_t, 3>({0xffff - 1, 0xff00, 0xff0f})));}
+  static_assert(compare(Computer<3, uint16_t>::boot<test::tmpasm_not>(),
+                        std::array<uint16_t, 3>({0xffff - 1, 0xff00, 0xff0f})));
+}
 
 void
 t400()
@@ -196,43 +192,43 @@ t400()
 }
 void
 t205()
-{ 
-   struct test
-   {
-     using tmpasm_move_lea_1var = Program<D<Id("a"), Num<42>>,
-                                          Mov<Mem<Num<1>>, Lea<Id("a")>>,
-                                          Mov<Mem<Num<2>>, Mem<Lea<Id("a")>>>,
-                                          Mov<Mem<Lea<Id("a")>>, Num<5>>>;
-     using tmpasm_move_lea_3vars_read =
-       Program<Mov<Mem<Num<5>>, Mem<Lea<Id("a")>>>,
-               Mov<Mem<Num<6>>, Mem<Lea<Id("b")>>>,
-               Mov<Mem<Num<7>>, Mem<Lea<Id("c")>>>,
-               D<Id("a"), Num<7>>,
-               D<Id("b"), Num<8>>,
-               D<Id("c"), Num<9>>>;
-     using tmpasm_move_lea_3vars_write =
-       Program<Mov<Mem<Num<5>>, Mem<Lea<Id("a")>>>,
-               D<Id("a"), Num<7>>,
-               Mov<Mem<Num<6>>, Mem<Lea<Id("b")>>>,
-               D<Id("b"), Num<8>>,
-               Mov<Mem<Num<7>>, Mem<Lea<Id("c")>>>,
-               Mov<Mem<Lea<Id("c")>>, Num<13>>,
-               Mov<Mem<Lea<Id("b")>>, Num<14>>,
-               D<Id("c"), Num<9>>,
-               Mov<Mem<Lea<Id("a")>>, Num<14>>,
-               Mov<Mem<Lea<Id("a")>>, Num<15>>>;
-   };
+{
+  struct test
+  {
+    using tmpasm_move_lea_1var = Program<D<Id("a"), Num<42>>,
+                                         Mov<Mem<Num<1>>, Lea<Id("a")>>,
+                                         Mov<Mem<Num<2>>, Mem<Lea<Id("a")>>>,
+                                         Mov<Mem<Lea<Id("a")>>, Num<5>>>;
+    using tmpasm_move_lea_3vars_read =
+      Program<Mov<Mem<Num<5>>, Mem<Lea<Id("a")>>>,
+              Mov<Mem<Num<6>>, Mem<Lea<Id("b")>>>,
+              Mov<Mem<Num<7>>, Mem<Lea<Id("c")>>>,
+              D<Id("a"), Num<7>>,
+              D<Id("b"), Num<8>>,
+              D<Id("c"), Num<9>>>;
+    using tmpasm_move_lea_3vars_write =
+      Program<Mov<Mem<Num<5>>, Mem<Lea<Id("a")>>>,
+              D<Id("a"), Num<7>>,
+              Mov<Mem<Num<6>>, Mem<Lea<Id("b")>>>,
+              D<Id("b"), Num<8>>,
+              Mov<Mem<Num<7>>, Mem<Lea<Id("c")>>>,
+              Mov<Mem<Lea<Id("c")>>, Num<13>>,
+              Mov<Mem<Lea<Id("b")>>, Num<14>>,
+              D<Id("c"), Num<9>>,
+              Mov<Mem<Lea<Id("a")>>, Num<14>>,
+              Mov<Mem<Lea<Id("a")>>, Num<15>>>;
+  };
 
-   static_assert(compare(Computer<3, int>::boot<test::tmpasm_move_lea_1var>(),
-                         std::array<int, 3>({5, 0, 42})));
+  static_assert(compare(Computer<3, int>::boot<test::tmpasm_move_lea_1var>(),
+                        std::array<int, 3>({5, 0, 42})));
 
-     static_assert(
-       compare(Computer<8, int>::boot<test::tmpasm_move_lea_3vars_read>(),
-               std::array<int, 8>({7, 8, 9, 0, 0, 7, 8, 9})));
+  static_assert(
+    compare(Computer<8, int>::boot<test::tmpasm_move_lea_3vars_read>(),
+            std::array<int, 8>({7, 8, 9, 0, 0, 7, 8, 9})));
 
-     static_assert(
-       compare(Computer<8, int>::boot<test::tmpasm_move_lea_3vars_write>(),
-               std::array<int, 8>({15, 14, 13, 0, 0, 7, 8, 9})));
+  static_assert(
+    compare(Computer<8, int>::boot<test::tmpasm_move_lea_3vars_write>(),
+            std::array<int, 8>({15, 14, 13, 0, 0, 7, 8, 9})));
 }
 void
 t204()
